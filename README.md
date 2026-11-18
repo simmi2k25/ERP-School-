@@ -34,7 +34,16 @@ index on the new `User.teacherId` column. The column starts empty, so no data is
 Every student and staff login email must end in `@doonimperial.com`; the admin forms and server actions reject anything else.
 The domain is set in `SCHOOL_DOMAIN` in `lib/format.ts`. Running the seed also renames any old `@doonimperial.edu.in` accounts.
 
-## Deploy on Render
+## Deploy on Netlify (recommended: never sleeps)
+`netlify.toml` holds the build settings; Netlify detects Next.js by itself.
+1. In Netlify: **Add new site → Import an existing project → GitHub**, pick this repository.
+2. Add environment variables: `DATABASE_URL` (Neon pooled string), `AUTH_SECRET` (long random text),
+   `NEXT_PUBLIC_SHOW_DEMO_LOGINS` (`true` or `false`).
+3. Deploy. Rename the site under **Site configuration → Change site name** (e.g. `school-erp` → `school-erp.netlify.app`).
+
+`prisma/schema.prisma` includes the `rhel-openssl-3.0.x` engine that Netlify functions need.
+
+## Deploy on Render (alternative)
 The repo includes `render.yaml` (a Render Blueprint).
 1. Push this folder to a GitHub repository.
 2. In Render: **New → Blueprint**, pick the repository, and paste your Neon `DATABASE_URL` when asked.
@@ -44,11 +53,6 @@ The repo includes `render.yaml` (a Render Blueprint).
 The database schema and demo data already live in Neon, so nothing else needs to run on Render.
 `NEXT_PUBLIC_SHOW_DEMO_LOGINS="true"` shows the demo accounts on the login page; set it to `"false"` and redeploy for real use.
 On the free plan the service sleeps after ~15 minutes idle, so the first visit afterwards takes about a minute.
-
-### Wake-up page (share this link instead of the Render one)
-`wake/` is a small always-on page (a free Render **Static Site**, publish directory `wake`). It shows the school photo and crest
-while the sleeping web service starts, checks `/api/ping` every few seconds, and opens the ERP as soon as it answers.
-If the web service's address changes, update `APP_URL` at the bottom of `wake/index.html`.
 
 ## Design
 - Theme taken from the school crest: maroon `#7a1a28`, antique gold `#c49a45`, warm ivory background.
