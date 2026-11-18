@@ -4,7 +4,7 @@ services:
     name: doon-imperial-erp
     runtime: node
     plan: free
-    region: ohio            # same region as the Neon database (us-east-2) for low latency
+    region: singapore       # same region as the Neon database (ap-southeast-1) for low latency
     buildCommand: npm ci && npm run build
     startCommand: npm start
     healthCheckPath: /login
