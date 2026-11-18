@@ -45,6 +45,11 @@ The database schema and demo data already live in Neon, so nothing else needs to
 `NEXT_PUBLIC_SHOW_DEMO_LOGINS="true"` shows the demo accounts on the login page; set it to `"false"` and redeploy for real use.
 On the free plan the service sleeps after ~15 minutes idle, so the first visit afterwards takes about a minute.
 
+### Wake-up page (share this link instead of the Render one)
+`wake/` is a small always-on page (a free Render **Static Site**, publish directory `wake`). It shows the school photo and crest
+while the sleeping web service starts, checks `/api/ping` every few seconds, and opens the ERP as soon as it answers.
+If the web service's address changes, update `APP_URL` at the bottom of `wake/index.html`.
+
 ## Design
 - Theme taken from the school crest: maroon `#7a1a28`, antique gold `#c49a45`, warm ivory background.
 - Fonts: Playfair Display (headings) and Inter (interface), loaded via `next/font`.

@@ -19,3 +19,12 @@ services:
         generateValue: true # Render creates a strong random secret
       - key: NEXT_PUBLIC_SHOW_DEMO_LOGINS
         value: "true"       # shows demo accounts on the login page; set to "false" for real use
+
+  # Always-on wake-up page (free static sites never sleep). Share THIS link with the school:
+  # it shows a branded loading screen while the web service above wakes up, then opens the ERP.
+  # If the web service's address changes, update APP_URL in wake/index.html.
+  - type: web
+    name: doon-erp            # becomes https://doon-erp.onrender.com
+    runtime: static
+    buildCommand: echo "static wake-up page"
+    staticPublishPath: ./wake

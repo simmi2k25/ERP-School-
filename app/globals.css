@@ -360,3 +360,17 @@ h1, h2, h3 { margin: 0; }
 @media (max-width: 420px) {
   .g-4 { grid-template-columns: 1fr; }
 }
+
+/* ---------- Loading splash (app/loading.tsx) ---------- */
+.splash {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 16px;
+  background: linear-gradient(rgba(42, 7, 13, .72), rgba(42, 7, 13, .82)), url('/assets/school-building.jpg') center / cover no-repeat, var(--maroon-900);
+}
+.splash-card { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; color: #fff; }
+.splash-card img { width: 84px; height: 84px; border-radius: 50%; background: #fff; padding: 6px; box-shadow: var(--shadow-lg); }
+.splash-name { font-family: var(--font-serif); font-size: 22px; font-weight: 600; letter-spacing: .01em; }
+.splash-msg { color: var(--gold-100); font-size: 13px; }
+.splash-bar { width: 180px; height: 3px; border-radius: 3px; background: rgba(255, 255, 255, .18); overflow: hidden; }
+.splash-bar span { display: block; width: 40%; height: 100%; background: var(--gold-500); border-radius: 3px; animation: splash-slide 1.2s ease-in-out infinite; }
+@keyframes splash-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+@media (prefers-reduced-motion: reduce) { .splash-bar span { animation: none; width: 100%; opacity: .6; } }

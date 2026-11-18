@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Doon Imperial ERP</title>
+<meta name="description" content="Doon Imperial Residential School — school management portal.">
+<link rel="icon" href="school-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<style>
+  /*
+    Always-on front door for the ERP. It is hosted as a free Render *static site*, which never sleeps.
+    It checks whether the ERP web service is awake, shows this branded screen while it wakes up,
+    then sends the visitor to the ERP. Change APP_URL below if the service address ever changes.
+  */
+  :root {
+    --maroon-950: #2a070d; --maroon-900: #3f0b14; --gold-500: #c49a45; --gold-100: #f6ecd6;
+    --overlay: rgba(42, 7, 13, .74);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: #fff; background: var(--maroon-900);
+    -webkit-font-smoothing: antialiased;
+  }
+  .bg {
+    position: fixed; inset: 0;
+    background: linear-gradient(var(--overlay), rgba(42, 7, 13, .86)), url('school-building.jpg') center / cover no-repeat;
+  }
+  main {
+    position: relative; min-height: 100%; display: grid; place-items: center; padding: 24px 16px; text-align: center;
+  }
+  .card { display: flex; flex-direction: column; align-items: center; gap: 14px; max-width: 420px; width: 100%; }
+  .crest { width: 96px; height: 96px; border-radius: 50%; background: #fff; padding: 7px; box-shadow: 0 20px 60px rgba(20, 4, 8, .35); }
+  .eyebrow { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--gold-500); margin-top: 4px; }
+  h1 { margin: 0; font-family: 'Playfair Display', Georgia, serif; font-weight: 600; font-size: clamp(24px, 6vw, 32px); line-height: 1.2; }
+  .bar { width: 220px; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, .18); overflow: hidden; margin-top: 10px; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--gold-500); border-radius: 4px; transition: width .8s ease; }
+  .msg { color: var(--gold-100); font-size: 14px; min-height: 21px; }
+  .hint { color: rgba(255, 255, 255, .6); font-size: 12px; max-width: 320px; line-height: 1.5; }
+  .btn {
+    display: none; margin-top: 6px; padding: 10px 18px; border-radius: 9px; border: 1px solid var(--gold-500);
+    color: #fff; background: transparent; font: inherit; font-size: 14px; cursor: pointer; text-decoration: none;
+  }
+  .btn:hover { background: rgba(196, 154, 69, .18); }
+  @media (prefers-reduced-motion: reduce) { .bar span { transition: none; } }
+</style>
+</head>
+<body>
+<div class="bg" aria-hidden="true"></div>
+<main>
+  <div class="card" role="status" aria-live="polite">
+    <img class="crest" src="school-logo.png" alt="Doon Imperial Residential School crest" width="96" height="96">
+    <div class="eyebrow">School Portal</div>
+    <h1>Doon Imperial Residential School</h1>
+    <div class="bar"><span id="bar"></span></div>
+    <div class="msg" id="msg">Opening the school portal…</div>
+    <div class="hint" id="hint"></div>
+    <a class="btn" id="go">Open the portal</a>
+  </div>
+</main>
+<script>
+  const APP_URL = 'https://erp-school-im9c.onrender.com';
+  const EXPECTED_SECONDS = 60;   // typical wake-up time on Render's free plan
+  const GIVE_UP_SECONDS = 180;
+
+  const $ = id => document.getElementById(id);
+  // Keep the path the visitor asked for (e.g. /admin/students), but only on the ERP's own domain.
+  const path = location.pathname.startsWith('/') && !location.pathname.startsWith('//') ? location.pathname : '/';
+  const target = APP_URL + (path === '/' || path === '/index.html' ? '/login' : path) + location.search;
+  $('go').href = target;
+
+  const started = Date.now();
+  const messages = [
+    [0, 'Opening the school portal…'],
+    [4, 'Waking up the school portal…'],
+    [20, 'Getting classrooms ready…'],
+    [40, 'Almost there…'],
+    [75, 'Still waking up, thanks for waiting…'],
+  ];
+
+  function tick() {
+    const s = (Date.now() - started) / 1000;
+    const pct = Math.min(95, (s / EXPECTED_SECONDS) * 90);
+    $('bar').style.width = pct + '%';
+    $('msg').textContent = messages.filter(m => s >= m[0]).pop()[1];
+    if (s >= 4) $('hint').textContent = 'The portal sleeps when nobody is using it. The first visit takes about a minute; after that it is fast.';
+  }
+
+  async function isAwake() {
+    const ctl = new AbortController();
+    const t = setTimeout(() => ctl.abort(), 10000);
+    try {
+      const r = await fetch(APP_URL + '/api/ping?t=' + Date.now(), { signal: ctl.signal, cache: 'no-store' });
+      if (!r.ok) return false;
+      return (await r.json()).ok === true;
+    } catch { return false; } finally { clearTimeout(t); }
+  }
+
+  async function loop() {
+    if (await isAwake()) {
+      $('bar').style.width = '100%';
+      $('msg').textContent = 'Ready! Opening…';
+      location.replace(target);
+      return;
+    }
+    if ((Date.now() - started) / 1000 > GIVE_UP_SECONDS) {
+      $('msg').textContent = 'This is taking longer than usual.';
+      $('hint').textContent = 'Try opening the portal directly, or refresh this page in a minute.';
+      $('go').style.display = 'inline-block';
+      return;
+    }
+    setTimeout(loop, 3000);
+  }
+
+  tick();
+  setInterval(tick, 1000);
+  loop();
+</script>
+</body>
+</html>
